@@ -1,0 +1,717 @@
+<html> 
+<head> 
+	<title> Park </title> 
+	<style> 
+	canvas { width: 100%; height: 100% }
+</style> 
+</head> 
+<body> 
+	<script src="three.min.js"> </script> 
+
+	<script> 
+
+		window.addEventListener('keydown',doKeyDown,true);
+            // agregamos el "listener" para "escuchar" los eventos del teclado
+            
+            var zpos = 50.0;
+            var xpos = 0;
+            var yrot = 0;
+
+
+            var doorControl = 0;
+            var hoodControl = 0;
+            var trunkControl = 0;
+            
+            function doKeyDown(evt){
+                //console.log("Tecla presionada: "+evt.keyCode);
+                switch (evt.keyCode) {
+                	case 38:  /* Up arrow was pressed */                        
+                	zpos -= (0.5 * Math.cos(yrot));
+                	xpos -= (0.5 * Math.sin(yrot));
+                	break;
+                	case 40:  /* Down arrow was pressed */                        
+                	zpos += (0.5 * Math.cos(yrot));
+                	xpos += (0.5 * Math.sin(yrot));
+                	break;
+                	case 37:  /* Left arrow was pressed */   
+                	yrot += 0.1;                     
+                	break;
+                	case 39:  /* Right arrow was pressed */    
+                	yrot -= 0.1;
+                	break;
+                	case 87:  /* W was pressed */
+                	camera.position.y += 0.5;                        
+                	break;
+                	case 83:  /* S was pressed */
+                	camera.position.y -= 0.5;                        
+                	break;
+                	case 65:  /* A was pressed */
+                    xpos -= (0.5 * Math.cos(yrot));
+                    zpos += (0.5 * Math.sin(yrot));
+                    break;
+                    case 68:  /* D was pressed */
+                    xpos += (0.5 * Math.cos(yrot));
+                    zpos -= (0.5 * Math.sin(yrot));
+                    break;
+                    case 84:  /* T was pressed */
+                    break;
+                    case 71:  /* G was pressed */
+                    break;
+                    case 82:  /* R was pressed */
+                    if(hoodControl > 0){
+                    	CofreGhost.rotation.z += 10 * Math.PI/180;
+                    	hoodControl--;
+                    }
+                    break;
+                    case 70:  /* F was pressed */
+                    break;
+                    case 89:  /* Y was pressed */
+                    if(hoodControl < 7){
+                    	CofreGhost.rotation.z -= 10 * Math.PI/180;
+                    	hoodControl++;
+                    }
+                    break;
+                    case 72:  /* H was pressed */
+                    break;
+                    case 85:  /* U was pressed */
+                    if(doorControl < 8){
+                    	FrontGhostL.rotation.y -= 10 * Math.PI/180;
+                    	FrontGhostR.rotation.y += 10 * Math.PI/180;
+                    	doorControl++;
+                	}
+                    break;
+                    case 74:  /* J was pressed */
+                    if(doorControl > 0){
+                    	FrontGhostL.rotation.y += 10 * Math.PI/180;
+                    	FrontGhostR.rotation.y -= 10 * Math.PI/180;
+                    	doorControl--;
+                    }
+                    break;
+                    case 73:  /* I was pressed */
+                    break;
+                    case 75:  /* K was pressed */
+                    break;
+                    case 66:  /* B was pressed */
+                    if(trunkControl > 0){
+                    	TrunkGhost.rotation.z -= 10 * Math.PI/180;
+                    	trunkControl--;
+                    }
+                    break;
+                    case 86:  /* V was pressed */
+                    if(trunkControl < 9){
+                    	TrunkGhost.rotation.z += 10 * Math.PI/180;
+                    	trunkControl++;
+                    }
+                    break;
+                    case 88:  /* X was pressed */
+                    break;
+                }
+            }
+
+            // three basic components of a scene
+            var scene = new THREE.Scene(); 
+            var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.01, 1000); 
+            var renderer = new THREE.WebGLRenderer(); 
+
+            renderer.shadowMap.enabled = true;
+			renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+
+			// create some point lights
+            //Create a DirectionalLight and turn on shadows for the light
+            var light = new THREE.DirectionalLight( 0xffffff, 1, 100 );
+            light.position.set( 20, 70, 20 );          //default; light shining from top
+            light.castShadow = true;            // default false
+            scene.add( light );
+
+            //Set up shadow properties for the light
+            light.shadow.mapSize.width = 512;  // default
+            light.shadow.mapSize.height = 512; // default
+            light.shadow.camera.near = 0.5;    // default
+            light.shadow.camera.far = 500;     // default
+
+            light.shadowCameraLeft = -100;
+			light.shadowCameraRight = 100;
+			light.shadowCameraTop = 100;
+			light.shadowCameraBottom = -100;
+
+            // create some point lights
+            var pointLight = new THREE.PointLight( 0xFFFFFF );
+
+            // set its position
+            pointLight.position.x = -10;
+            pointLight.position.y = 70;
+            pointLight.position.z = -10;
+
+            // add to the scene
+            scene.add(pointLight);
+
+            //Create a helper for the shadow camera (optional)
+            var helper = new THREE.CameraHelper( light.shadow.camera );
+            //scene.add( helper ); 
+
+
+            function createVagon(material){
+                var ferrisCarSideGeom = new THREE.BoxGeometry( 3, 3, 0.1 );
+                var ferrisTubeGeom = new THREE.CylinderGeometry( 0.05, 0.05, 1.6, 32 );
+                var ferrisHolderGeom = new THREE.CylinderGeometry( 0.5, 0.5, 8, 32 );
+                var ferrisBaseGeom = new THREE.CylinderGeometry( 0.6, 0.6, 44, 32 );
+
+                var ferrisCar = [new THREE.Mesh( ferrisCarSideGeom, material), new THREE.Mesh( ferrisCarSideGeom, material), new THREE.Mesh( ferrisCarSideGeom, material), new THREE.Mesh( ferrisCarSideGeom, material), new THREE.Mesh( ferrisCarSideGeom, material)];
+                var ferrisTube1 = new THREE.Mesh( ferrisTubeGeom, material);
+                var ferrisTube2 = new THREE.Mesh( ferrisTubeGeom, material);
+                var ferrisHolder = new THREE.Mesh( ferrisHolderGeom, material);
+
+                ferrisCar[0].position.z = -1.5;
+                ferrisCar[1].position.z = 1.5;
+                ferrisCar[2].rotation.y = 90 * Math.PI/180;
+                ferrisCar[2].position.x = -1.5;
+                ferrisCar[3].rotation.y = 90 * Math.PI/180;
+                ferrisCar[3].position.x = 1.5;
+                ferrisCar[4].rotation.x = 90 * Math.PI/180;
+                ferrisCar[4].position.y = -1.5;
+                ferrisTube1.rotation.z = -45* Math.PI/180;
+                ferrisTube1.position.x = -1.5+Math.cos(45);
+                ferrisTube2.rotation.z = 45* Math.PI/180;
+                ferrisTube2.position.x = 1.5-Math.cos(45);
+                ferrisHolder.rotation.x = 90 * Math.PI/180;
+
+                carGroup = new THREE.Mesh();
+                carGroup.add(ferrisCar[0]);
+                carGroup.add(ferrisCar[1]);
+                carGroup.add(ferrisCar[2]);
+                carGroup.add(ferrisCar[3]);
+                carGroup.add(ferrisCar[4]);
+
+                vagonGroup = new THREE.Mesh();
+                vagonGroup.add(carGroup);
+                carGroup.position.y = -1.5-Math.cos(45)-1.5*Math.cos(45);
+                vagonGroup.add(ferrisTube1);
+                vagonGroup.add(ferrisTube2);
+                ferrisTube1.position.y = -1.5*Math.cos(45);
+                ferrisTube2.position.y = -1.5*Math.cos(45);
+                vagonGroup.add(ferrisHolder);
+
+                return vagonGroup;
+            }
+
+            var groundGeom = new THREE.BoxGeometry( 1000, 0.01, 1000 );
+
+
+            var ferrisRingGeom = new THREE.TorusGeometry( 25, 0.5, 16, 16 );
+            var ferrisSupportGeom = new THREE.CylinderGeometry( 0.5, 0.5, 50, 32 );
+            var ferrisCenterGeom = new THREE.CylinderGeometry( 0.5, 0.5, 8, 32 );
+            var ferrisBaseGeom = new THREE.CylinderGeometry( 0.6, 0.6, 44, 32 );
+
+            var alibabaSupportGeom = new THREE.BoxGeometry( 15, 3, 1 );
+            var alibabaPendulumGeom = new THREE.BoxGeometry( 2, 8, 1.1 );
+            var aliCarSideGeom = new THREE.BoxGeometry( 3, 3, 0.1 );
+            var aliCarSidezGeom = new THREE.BoxGeometry( 6, 3, 0.1 );
+            var alibabaBaseGeom = new THREE.BoxGeometry( 4, 12, 1 );
+
+            var kilahueaRingGeom = new THREE.TorusGeometry( 5, 3, 6, 8 );
+            var kilahueaSupportGeom = new THREE.CylinderGeometry( 4, 4, 60, 8 );
+
+
+            // create a Lambert material
+            var redMaterial = new THREE.MeshStandardMaterial( { color: 0xff0000, metalness: 0.2} );
+            var greenMaterial = new THREE.MeshStandardMaterial( { color: 0x00ff00, metalness: 0.2} );
+            var blueMaterial = new THREE.MeshStandardMaterial( { color: 0x0000ff, metalness: 0.2} );
+            var yellowMaterial = new THREE.MeshStandardMaterial( { color: 0xffff00, metalness: 0.2} );
+
+
+            var grassMaterial = new THREE.MeshStandardMaterial({color: 0x28b463, metalness: 0, emissive: 0, roughness: 1});
+
+            var grass = new THREE.Mesh( groundGeom, grassMaterial);
+
+
+            var ferrisRing1 = new THREE.Mesh( ferrisRingGeom, yellowMaterial);
+            var ferrisRing2 = new THREE.Mesh( ferrisRingGeom, blueMaterial);
+            var ferrisCenter = new THREE.Mesh( ferrisCenterGeom, redMaterial);
+            var ferrisBase1 = new THREE.Mesh( ferrisBaseGeom,redMaterial);
+            var ferrisBase2 = new THREE.Mesh( ferrisBaseGeom, redMaterial);
+            var ferrisBase3 = new THREE.Mesh( ferrisBaseGeom,blueMaterial);
+            var ferrisBase4 = new THREE.Mesh( ferrisBaseGeom, blueMaterial);
+
+            var ferrisSupport1 = new THREE.Mesh( ferrisSupportGeom, redMaterial);
+            var ferrisSupport2 = new THREE.Mesh( ferrisSupportGeom, greenMaterial);
+            var ferrisSupport3 = new THREE.Mesh( ferrisSupportGeom, blueMaterial);
+            var ferrisSupport4 = new THREE.Mesh( ferrisSupportGeom, yellowMaterial);
+            var ferrisSupport5 = new THREE.Mesh( ferrisSupportGeom, redMaterial);
+            var ferrisSupport6 = new THREE.Mesh( ferrisSupportGeom, greenMaterial);
+            var ferrisSupport7 = new THREE.Mesh( ferrisSupportGeom, blueMaterial);
+            var ferrisSupport8 = new THREE.Mesh( ferrisSupportGeom, yellowMaterial);
+
+            var ferrisSupport12 = new THREE.Mesh( ferrisSupportGeom, blueMaterial);
+            var ferrisSupport22 = new THREE.Mesh( ferrisSupportGeom, yellowMaterial);
+            var ferrisSupport32 = new THREE.Mesh( ferrisSupportGeom, redMaterial);
+            var ferrisSupport42 = new THREE.Mesh( ferrisSupportGeom, greenMaterial);
+            var ferrisSupport52 = new THREE.Mesh( ferrisSupportGeom, blueMaterial);
+            var ferrisSupport62 = new THREE.Mesh( ferrisSupportGeom, yellowMaterial);
+            var ferrisSupport72 = new THREE.Mesh( ferrisSupportGeom, redMaterial);
+            var ferrisSupport82 = new THREE.Mesh( ferrisSupportGeom, greenMaterial);
+
+            vagonArr1 = createVagon(redMaterial);
+            vagonArr2 = createVagon(greenMaterial);
+            vagonArr3 = createVagon(blueMaterial);
+            vagonArr4 = createVagon(yellowMaterial);
+            vagonArr5 = createVagon(redMaterial);
+            vagonArr6 = createVagon(greenMaterial);
+            vagonArr7 = createVagon(blueMaterial);
+            vagonArr8 = createVagon(yellowMaterial);
+            vagonArr9 = createVagon(redMaterial);
+            vagonArr10 = createVagon(greenMaterial);
+            vagonArr11 = createVagon(blueMaterial);
+            vagonArr12 = createVagon(yellowMaterial);
+            vagonArr13 = createVagon(redMaterial);
+            vagonArr14 = createVagon(greenMaterial);
+            vagonArr15 = createVagon(blueMaterial);
+            vagonArr16 = createVagon(yellowMaterial);
+
+            ferrisSupport2.rotation.z = 1 * (360/16) * Math.PI/180;
+            ferrisSupport3.rotation.z = 2 * (360/16) * Math.PI/180;
+            ferrisSupport4.rotation.z = 3 * (360/16) * Math.PI/180;
+            ferrisSupport5.rotation.z = 4 * (360/16) * Math.PI/180;
+            ferrisSupport6.rotation.z = 5 * (360/16) * Math.PI/180;
+            ferrisSupport7.rotation.z = 6 * (360/16) * Math.PI/180;
+            ferrisSupport8.rotation.z = 7 * (360/16) * Math.PI/180;
+
+            ferrisSupport22.rotation.z = 1 * (360/16) * Math.PI/180;
+            ferrisSupport32.rotation.z = 2 * (360/16) * Math.PI/180;
+            ferrisSupport42.rotation.z = 3 * (360/16) * Math.PI/180;
+            ferrisSupport52.rotation.z = 4 * (360/16) * Math.PI/180;
+            ferrisSupport62.rotation.z = 5 * (360/16) * Math.PI/180;
+            ferrisSupport72.rotation.z = 6 * (360/16) * Math.PI/180;
+            ferrisSupport82.rotation.z = 7 * (360/16) * Math.PI/180;
+
+            ferrisSupportGroup = new THREE.Mesh();
+            ferrisSupportGroup.add(ferrisSupport1);
+            ferrisSupportGroup.add(ferrisSupport2);
+            ferrisSupportGroup.add(ferrisSupport3);
+            ferrisSupportGroup.add(ferrisSupport4);
+            ferrisSupportGroup.add(ferrisSupport5);
+            ferrisSupportGroup.add(ferrisSupport6);
+            ferrisSupportGroup.add(ferrisSupport7);
+            ferrisSupportGroup.add(ferrisSupport8);
+
+            ferrisSupportGroup2 = new THREE.Mesh();2
+            ferrisSupportGroup2.add(ferrisSupport12);
+            ferrisSupportGroup2.add(ferrisSupport22);
+            ferrisSupportGroup2.add(ferrisSupport32);
+            ferrisSupportGroup2.add(ferrisSupport42);
+            ferrisSupportGroup2.add(ferrisSupport52);
+            ferrisSupportGroup2.add(ferrisSupport62);
+            ferrisSupportGroup2.add(ferrisSupport72);
+            ferrisSupportGroup2.add(ferrisSupport82);
+
+            ferrisSupportGroup.position.z = 3;
+            ferrisSupportGroup2.position.z = -3;
+
+            ferrisCenter.rotation.x = 90 * Math.PI / 180;
+
+            ferrisGroup = new THREE.Mesh();
+            ferrisGroup.add(ferrisRing1);
+            ferrisGroup.add(ferrisRing2);
+            ferrisGroup.add(ferrisSupportGroup);
+            ferrisGroup.add(ferrisSupportGroup2);
+            ferrisGroup.add(ferrisCenter);
+
+            ferrisRing1.position.z = 3;
+            ferrisRing2.position.z = -3;
+            
+            vagonArr1.position.y = 25 * Math.cos( 0 * (360/16) * Math.PI/180);
+            vagonArr1.position.x = 25 * Math.sin( 0 * (360/16) * Math.PI/180);
+            
+            vagonArr2.position.y = 25 * Math.cos( 1 * (360/16) * Math.PI/180);
+            vagonArr2.position.x = 25 * Math.sin( 1 * (360/16) * Math.PI/180);
+            
+            vagonArr3.position.y = 25 * Math.cos( 2 * (360/16) * Math.PI/180);
+            vagonArr3.position.x = 25 * Math.sin( 2 * (360/16) * Math.PI/180);
+
+            vagonArr4.position.y = 25 * Math.cos( 3 * (360/16) * Math.PI/180);
+            vagonArr4.position.x = 25 * Math.sin( 3 * (360/16) * Math.PI/180);
+
+            vagonArr5.position.y = 25 * Math.cos( 4 * (360/16) * Math.PI/180);
+            vagonArr5.position.x = 25 * Math.sin( 4 * (360/16) * Math.PI/180);
+            
+            vagonArr6.position.y = 25 * Math.cos( 5 * (360/16) * Math.PI/180);
+            vagonArr6.position.x = 25 * Math.sin( 5 * (360/16) * Math.PI/180);
+            
+            vagonArr7.position.y = 25 * Math.cos( 6 * (360/16) * Math.PI/180);
+            vagonArr7.position.x = 25 * Math.sin( 6 * (360/16) * Math.PI/180);
+
+            vagonArr8.position.y = 25 * Math.cos( 7 * (360/16) * Math.PI/180);
+            vagonArr8.position.x = 25 * Math.sin( 7 * (360/16) * Math.PI/180);
+
+            vagonArr9.position.y = 25 * Math.cos( 8 * (360/16) * Math.PI/180);
+            vagonArr9.position.x = 25 * Math.sin( 8 * (360/16) * Math.PI/180);
+            
+            vagonArr10.position.y = 25 * Math.cos( 9 * (360/16) * Math.PI/180);
+            vagonArr10.position.x = 25 * Math.sin( 9 * (360/16) * Math.PI/180);
+            
+            vagonArr11.position.y = 25 * Math.cos( 10 * (360/16) * Math.PI/180);
+            vagonArr11.position.x = 25 * Math.sin( 10 * (360/16) * Math.PI/180);
+
+            vagonArr12.position.y = 25 * Math.cos( 11 * (360/16) * Math.PI/180);
+            vagonArr12.position.x = 25 * Math.sin( 11 * (360/16) * Math.PI/180);
+
+            vagonArr13.position.y = 25 * Math.cos( 12 * (360/16) * Math.PI/180);
+            vagonArr13.position.x = 25 * Math.sin( 12 * (360/16) * Math.PI/180);
+            
+            vagonArr14.position.y = 25 * Math.cos( 13 * (360/16) * Math.PI/180);
+            vagonArr14.position.x = 25 * Math.sin( 13 * (360/16) * Math.PI/180);
+            
+            vagonArr15.position.y = 25 * Math.cos( 14 * (360/16) * Math.PI/180);
+            vagonArr15.position.x = 25 * Math.sin( 14 * (360/16) * Math.PI/180);
+
+            vagonArr16.position.y = 25 * Math.cos( 15 * (360/16) * Math.PI/180);
+            vagonArr16.position.x = 25 * Math.sin( 15 * (360/16) * Math.PI/180);
+            
+            ferrisGroup.add(vagonArr1);
+            ferrisGroup.add(vagonArr2);
+            ferrisGroup.add(vagonArr3);
+            ferrisGroup.add(vagonArr4);
+            ferrisGroup.add(vagonArr5);
+            ferrisGroup.add(vagonArr6);
+            ferrisGroup.add(vagonArr7);
+            ferrisGroup.add(vagonArr8);
+            ferrisGroup.add(vagonArr9);
+            ferrisGroup.add(vagonArr10);
+            ferrisGroup.add(vagonArr11);
+            ferrisGroup.add(vagonArr12);
+            ferrisGroup.add(vagonArr13);
+            ferrisGroup.add(vagonArr14);
+            ferrisGroup.add(vagonArr15);
+            ferrisGroup.add(vagonArr16);
+
+            ferrisWheel = new THREE.Mesh();
+            ferrisWheel.add(ferrisGroup);
+            ferrisWheel.position.x = 30;
+            ferrisWheel.rotation.y = 2;
+
+            ferrisPhantom1 = new THREE.Mesh();
+            ferrisPhantom1.add(ferrisBase1);
+            ferrisBase1.position.z = -4.4;
+            ferrisBase1.position.y = -21.5;
+            ferrisPhantom1.rotation.z = 45 * Math.PI/180;
+
+            ferrisPhantom2 = new THREE.Mesh();
+            ferrisPhantom2.add(ferrisBase2);
+            ferrisBase2.position.z = -4.4;
+            ferrisBase2.position.y = -21.5;
+            ferrisPhantom2.rotation.z = -45 * Math.PI/180;
+
+            ferrisPhantom3 = new THREE.Mesh();
+            ferrisPhantom3.add(ferrisBase3);
+            ferrisBase3.position.z = 4.4;
+            ferrisBase3.position.y = -21.5;
+            ferrisPhantom3.rotation.z = 45 * Math.PI/180;
+
+            ferrisPhantom4 = new THREE.Mesh();
+            ferrisPhantom4.add(ferrisBase4);
+            ferrisBase4.position.z = 4.4;
+            ferrisBase4.position.y = -21.5;
+            ferrisPhantom4.rotation.z = -45 * Math.PI/180;
+
+            ferrisWheel.add(ferrisPhantom1);
+            ferrisWheel.add(ferrisPhantom2);
+            ferrisWheel.add(ferrisPhantom3);
+            ferrisWheel.add(ferrisPhantom4);
+
+
+
+            alibaba = new THREE.Mesh();
+            alibabaCar = new THREE.Mesh();
+            alibabaStruct = new THREE.Mesh();
+            alibabaBase = new THREE.Mesh( alibabaBaseGeom, redMaterial);
+            alibabaSupport = new THREE.Mesh( alibabaSupportGeom, greenMaterial);
+            alibabaPendulum = new THREE.Mesh( alibabaPendulumGeom, blueMaterial);
+            alibabaCarSide1 = new THREE.Mesh(aliCarSideGeom, greenMaterial);
+            alibabaCarSide2 = new THREE.Mesh(aliCarSideGeom, redMaterial);
+            alibabaCarSidez1 = new THREE.Mesh(aliCarSidezGeom, blueMaterial);
+            alibabaCarSidez2 = new THREE.Mesh(aliCarSidezGeom, yellowMaterial);
+            alibabaCarUnder = new THREE.Mesh(aliCarSidezGeom, redMaterial);
+
+            alibabaCarSide1.rotation.y = 90 * Math.PI / 180;
+            alibabaCarSide2.rotation.y = 90 * Math.PI / 180;
+            alibabaCarSide1.position.x = -3;
+            alibabaCarSide2.position.x = 3;
+            alibabaCarSidez1.position.z = -1.5;
+            alibabaCarSidez2.position.z = 1.5;
+            alibabaCarUnder.rotation.x = 90 * Math.PI/180;
+            alibabaCarUnder.position.y = -1.5;
+            alibabaPendulum.position.x = -7.5;
+
+            alibabaCar.add(alibabaCarSide1);
+            alibabaCar.add(alibabaCarSide2);
+            alibabaCar.add(alibabaCarSidez1);
+            alibabaCar.add(alibabaCarSidez2);
+            alibabaCar.add(alibabaCarUnder);
+            alibabaCar.position.x = 7;
+            alibabaCar.position.z = 2;
+
+
+            alibaba.add(alibabaCar);
+            alibaba.add(alibabaSupport);
+            alibaba.add(alibabaPendulum);
+            alibaba.position.y = 6;
+            alibaba.position.z = 1;
+
+            alibabaStruct.add(alibabaBase);
+            alibabaStruct.add(alibaba);
+
+            kilahueaRing = new THREE.Mesh(kilahueaRingGeom, greenMaterial);
+            kilahueaSupport = new THREE.Mesh(kilahueaSupportGeom, blueMaterial);
+
+            kilahuea = new THREE.Mesh();
+            kilahuea.add(kilahueaRing);
+            kilahuea.add(kilahueaSupport);
+            kilahueaRing.rotation.x = 90 * Math.PI/180;
+            kilahuea.position.x = -30;
+            kilahueaRing.position.y = -26;
+
+            ferrisRing1.castShadow = true;
+            ferrisRing2.castShadow = true;
+            ferrisCenter.castShadow = true;
+            ferrisBase1.castShadow = true;
+            ferrisBase2.castShadow = true;
+            ferrisBase3.castShadow = true;
+            ferrisBase4.castShadow = true;
+         	ferrisSupport1.castShadow = true;
+            ferrisSupport2.castShadow = true;
+            ferrisSupport3.castShadow = true;
+            ferrisSupport4.castShadow = true;
+            ferrisSupport5.castShadow = true;
+            ferrisSupport6.castShadow = true;
+            ferrisSupport7.castShadow = true;
+            ferrisSupport8.castShadow = true;
+            ferrisSupport12.castShadow = true;
+            ferrisSupport22.castShadow = true;
+            ferrisSupport32.castShadow = true;
+            ferrisSupport42.castShadow = true;
+            ferrisSupport52.castShadow = true;
+            ferrisSupport62.castShadow = true;
+            ferrisSupport72.castShadow = true;
+            ferrisSupport82.castShadow = true;
+
+            alibabaBase.castShadow = true;
+            alibabaSupport.castShadow = true;
+            alibabaPendulum.castShadow = true;
+            alibabaCarSide1.castShadow = true;
+            alibabaCarSide2.castShadow = true;
+            alibabaCarSidez1.castShadow = true;
+            alibabaCarSidez2.castShadow = true;
+            alibabaCarUnder.castShadow = true;
+
+            kilahueaRing.castShadow = true;
+            kilahueaSupport.castShadow = true;
+
+            feria = new THREE.Mesh();
+            feria.add(ferrisWheel);
+            feria.add(alibabaStruct);
+            feria.add(kilahuea);
+            ferrisWheel.position.y = 30;
+            alibabaStruct.position.y = 6;
+            kilahuea.position.y = 30;
+            alibabaStruct.position.z = 20;
+            kilahuea.position.z = -20;
+
+            feria.position.z = -50;
+            feria.position.x = 50;
+
+
+
+            //tsuru
+            //largo = 6
+            //ancho = 2.289
+            //alto = 1.91
+            var carUnderGeom = new THREE.BoxGeometry( 5.8, 0.2, 2.289 );
+            var carFrontDoorGeom = new THREE.BoxGeometry( 1.5, 0.9, 0.1 );
+            var carFrontBumperGeom = new THREE.BoxGeometry( 1.5, 0.36, 2.289 );
+            var carCofreFrontGeom = new THREE.BoxGeometry( 0.1, 0.9, 2.289 );
+            var carCofreTapaGeom = new THREE.BoxGeometry( 1.4, 0.005, 2.289 );
+            var carBackSideGeom = new THREE.BoxGeometry( 2.9, 0.9, 0.1 );
+            var carBackGeom = new THREE.BoxGeometry( 0.1, 0.3, 0.4578 );
+            var carTrunkGeom = new THREE.BoxGeometry( 0.9667, 0.1, 2.089);
+            var carTrunk2Geom = new THREE.BoxGeometry( 0.1, 0.14, 2.089);
+            var carTrunk3Geom = new THREE.BoxGeometry( 0.1, 0.3, 1.3734);
+
+            var carMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, metalness: 0.5} );
+
+            var carUnder = new THREE.Mesh(carUnderGeom, carMaterial);
+            var carFrontDoorL = new THREE.Mesh(carFrontDoorGeom, carMaterial);
+            var carFrontDoorR = new THREE.Mesh(carFrontDoorGeom, carMaterial);
+            var carFrontBumper = new THREE.Mesh(carFrontBumperGeom, carMaterial);
+            var carCofreL = new THREE.Mesh(carFrontDoorGeom, carMaterial);
+            var carCofreR = new THREE.Mesh(carFrontDoorGeom, carMaterial);
+            var carCofreF = new THREE.Mesh(carCofreFrontGeom, carMaterial);
+            var carCofreT = new THREE.Mesh(carCofreTapaGeom, carMaterial);
+            var carBackBumper = new THREE.Mesh(carFrontBumperGeom, carMaterial);
+            var carBackL = new THREE.Mesh(carBackSideGeom, carMaterial);
+            var carBackR = new THREE.Mesh(carBackSideGeom, carMaterial);
+            var carBackkL = new THREE.Mesh(carBackGeom, carMaterial);
+            var carBackkR = new THREE.Mesh(carBackGeom, carMaterial);
+            var carTrunk = new THREE.Mesh(carTrunkGeom, carMaterial);
+            var carTrunk2 = new THREE.Mesh(carTrunk2Geom, carMaterial);
+            var carTrunk3 = new THREE.Mesh(carTrunk3Geom, carMaterial);
+
+
+            FrontGhostL = new THREE.Mesh();
+            FrontGhostL.add(carFrontDoorL);
+            carFrontDoorL.position.x = 0.75;
+
+            FrontGhostR = new THREE.Mesh();
+            FrontGhostR.add(carFrontDoorR);
+            carFrontDoorR.position.x = 0.75;
+
+            CofreGhost = new THREE.Mesh();
+            CofreGhost.add(carCofreT);
+            carCofreT.position.x = -0.7;
+
+            TrunkGhost = new THREE.Mesh();
+            TrunkGhost.add(carTrunk);
+            TrunkGhost.add(carTrunk2);
+            TrunkGhost.add(carTrunk3);
+            carTrunk.position.x = 0.48335;
+            carTrunk2.position.x = 0.9167;
+            carTrunk2.position.y = -0.12;
+            carTrunk3.position.x = 0.9167;
+            carTrunk3.position.y = -0.34;
+
+
+            FrontGhostL.position.x = -1.5;
+            FrontGhostL.position.z = 1.095;
+            FrontGhostL.position.y = 0.55;
+
+            FrontGhostR.position.x = -1.5;
+            FrontGhostR.position.z = -1.095;
+            FrontGhostR.position.y = 0.55;
+
+            carFrontBumper.position.x = -2.25;
+            carFrontBumper.position.y = 0.28;
+
+            carCofreL.position.z = 1.0945;
+            carCofreL.position.y = 0.55;
+            carCofreL.position.x = -2.15;
+
+            carCofreR.position.z = -1.0945;
+            carCofreR.position.y = 0.55;
+            carCofreR.position.x = -2.15;
+
+            carCofreF.position.y = 0.55;
+            carCofreF.position.x = -2.85;
+
+            CofreGhost.position.x = -1.5;
+            CofreGhost.position.y = 1;
+
+            carBackBumper.position.x = 2.25;
+            carBackBumper.position.y = 0.28;
+
+            carBackL.position.z = 1.0945;
+            carBackL.position.y = 0.55;
+            carBackL.position.x = 1.45;
+
+            carBackR.position.z = -1.0945;
+            carBackR.position.y = 0.55;
+            carBackR.position.x = 1.45;
+
+            carBackkL.position.z = 0.8656;
+            carBackkL.position.y = 0.61;
+            carBackkL.position.x = 2.85;
+
+            carBackkR.position.z = -0.8656;
+            carBackkR.position.y = 0.61;
+            carBackkR.position.x = 2.85;
+
+            TrunkGhost.position.x = 1.9333;
+            TrunkGhost.position.y = 0.95;
+
+
+
+
+
+
+            tsuru = new THREE.Mesh();
+            tsuru.add(carUnder);
+            tsuru.add(FrontGhostL);
+            tsuru.add(FrontGhostR);
+            tsuru.add(carFrontBumper);
+            tsuru.add(carCofreL);
+            tsuru.add(carCofreR);
+            tsuru.add(carCofreF);
+            tsuru.add(CofreGhost);
+            tsuru.add(carBackBumper);
+            tsuru.add(carBackL);
+            tsuru.add(carBackR);
+            tsuru.add(carBackkL);
+            tsuru.add(carBackkR);
+            tsuru.add(TrunkGhost);
+
+
+
+
+            grass.receiveShadow = true;
+
+
+
+
+            //scene.add(grass);
+            scene.add(tsuru);
+           	scene.add(feria);
+            renderer.setSize(window.innerWidth, window.innerHeight); 
+            document.body.appendChild(renderer.domElement); 
+
+            camera.position.z = zpos; 
+            camera.position.x = xpos;
+            camera.rotation.y = yrot; 
+
+            
+            
+
+            
+            // set the background color
+            renderer.setClearColor(0x9999FF, 1);
+
+            camera.position.y = 10;
+
+            var goingUp = 1;
+
+            var render = function () { 
+            	requestAnimationFrame(render); 
+                ferrisGroup.rotation.z += 0.0025;
+                vagonArr1.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr2.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr3.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr4.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr5.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr6.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr7.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr8.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr9.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr10.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr11.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr12.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr13.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr14.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr15.rotation.z = -ferrisGroup.rotation.z;
+                vagonArr16.rotation.z = -ferrisGroup.rotation.z;
+                alibaba.rotation.z += 0.05;
+                alibabaCar.rotation.z = alibaba.rotation.z;
+                if(kilahueaRing.position.y >= 26)
+                    goingUp = 0;
+                else if(kilahueaRing.position.y <= -26)
+                    goingUp = 1;
+                if(goingUp == 1)
+                    kilahueaRing.position.y += 1;
+                else
+                    kilahueaRing.position.y -= 1;
+
+            	camera.position.z = zpos; 
+            	camera.position.x = xpos;
+            	camera.rotation.y = yrot; 
+            	renderer.render(scene, camera); 
+            }; 
+
+            render();             
+        </script> 
+    </body> 
+    </html>
