@@ -21,6 +21,8 @@
             var doorControl = 0;
             var hoodControl = 0;
             var trunkControl = 0;
+            var wheelControl = 0;
+            var ascension = 0;
             
             function doKeyDown(evt){
                 //console.log("Tecla presionada: "+evt.keyCode);
@@ -54,8 +56,14 @@
                     zpos -= (0.5 * Math.sin(yrot));
                     break;
                     case 84:  /* T was pressed */
+                    tsuru.position.z -= (1 * Math.cos(tsuru.rotation.y+90*Math.PI/180));
+                    tsuru.position.x -= (1 * Math.sin(tsuru.rotation.y+90*Math.PI/180));
+                    tsuru.rotation.y -= (WheelsGhostFL.rotation.z)/3;
                     break;
                     case 71:  /* G was pressed */
+                    tsuru.position.z += (1 * Math.cos(tsuru.rotation.y+90*Math.PI/180));
+                    tsuru.position.x += (1 * Math.sin(tsuru.rotation.y+90*Math.PI/180));
+                    tsuru.rotation.y += (WheelsGhostFL.rotation.z)/3;
                     break;
                     case 82:  /* R was pressed */
                     if(hoodControl > 0){
@@ -64,6 +72,11 @@
                     }
                     break;
                     case 70:  /* F was pressed */
+                    if(wheelControl > -2){
+                    	WheelsGhostFL.rotation.z -= 10 * Math.PI/180;
+                    	WheelsGhostFR.rotation.z -= 10 * Math.PI/180;
+                    	wheelControl--;
+                    }
                     break;
                     case 89:  /* Y was pressed */
                     if(hoodControl < 7){
@@ -72,6 +85,11 @@
                     }
                     break;
                     case 72:  /* H was pressed */
+                    if(wheelControl < 2){
+                    	WheelsGhostFL.rotation.z += 10 * Math.PI/180;
+                    	WheelsGhostFR.rotation.z += 10 * Math.PI/180;
+                    	wheelControl++;
+                    }
                     break;
                     case 85:  /* U was pressed */
                     if(doorControl < 8){
@@ -104,6 +122,14 @@
                     }
                     break;
                     case 88:  /* X was pressed */
+                    if(ascension == 0){
+                    	drone.position.y += 2;
+                    	ascension = 1;
+                    }
+                    else{
+                    	drone.position.y -= 2;
+                    	ascension = 0;
+                    }
                     break;
                 }
             }
@@ -129,18 +155,18 @@
             light.shadow.camera.near = 0.5;    // default
             light.shadow.camera.far = 500;     // default
 
-            light.shadowCameraLeft = -100;
-			light.shadowCameraRight = 100;
-			light.shadowCameraTop = 100;
-			light.shadowCameraBottom = -100;
+            light.shadowCameraLeft = -150;
+			light.shadowCameraRight = 150;
+			light.shadowCameraTop = 150;
+			light.shadowCameraBottom = -150;
 
             // create some point lights
             var pointLight = new THREE.PointLight( 0xFFFFFF );
 
             // set its position
             pointLight.position.x = -10;
-            pointLight.position.y = 70;
-            pointLight.position.z = -10;
+            pointLight.position.y = 100;
+            pointLight.position.z = -70;
 
             // add to the scene
             scene.add(pointLight);
@@ -534,8 +560,16 @@
             var carTrunkGeom = new THREE.BoxGeometry( 0.9667, 0.1, 2.089);
             var carTrunk2Geom = new THREE.BoxGeometry( 0.1, 0.14, 2.089);
             var carTrunk3Geom = new THREE.BoxGeometry( 0.1, 0.3, 1.3734);
+            var carWheelGeom = new THREE.CylinderGeometry( 0.39, 0.39, 0.32, 36 );
+            var carRimGeom = new THREE.CylinderGeometry( 0.24, 0.24, 0.322, 36 );
+            var carWindowFrameVGeom = new THREE.BoxGeometry( 0.1, 0.7, 0.1);
+            var carWindowFrameHGeom = new THREE.BoxGeometry( 0.75, 0.1, 0.1);
+            var carWindowFrameIGeom = new THREE.BoxGeometry( 0.1, 1.026, 0.1);
+            var carRoofGeom = new THREE.BoxGeometry( 1.548, 0.1, 2.289);
 
             var carMaterial = new THREE.MeshStandardMaterial( { color: 0xffffff, metalness: 0.5} );
+            var wheelMaterial = new THREE.MeshStandardMaterial( { color: 0x000000, metalness: 0.0, roughness: 1} );
+            var rimMaterial = new THREE.MeshStandardMaterial( { color: 0xC0C0C0, metalness: 0.7} );
 
             var carUnder = new THREE.Mesh(carUnderGeom, carMaterial);
             var carFrontDoorL = new THREE.Mesh(carFrontDoorGeom, carMaterial);
@@ -553,15 +587,58 @@
             var carTrunk = new THREE.Mesh(carTrunkGeom, carMaterial);
             var carTrunk2 = new THREE.Mesh(carTrunk2Geom, carMaterial);
             var carTrunk3 = new THREE.Mesh(carTrunk3Geom, carMaterial);
-
+            var carFrontWheelL = new THREE.Mesh(carWheelGeom, wheelMaterial);
+            var carFrontWheelR = new THREE.Mesh(carWheelGeom, wheelMaterial);
+            var carBackWheelL = new THREE.Mesh(carWheelGeom, wheelMaterial);
+            var carBackWheelR = new THREE.Mesh(carWheelGeom, wheelMaterial);
+            var carFrontRimL = new THREE.Mesh(carRimGeom, rimMaterial);
+            var carFrontRimR = new THREE.Mesh(carRimGeom, rimMaterial);
+            var carBackRimL = new THREE.Mesh(carRimGeom, rimMaterial);
+            var carBackRimR = new THREE.Mesh(carRimGeom, rimMaterial);
+            var carWindowFrameVFL = new THREE.Mesh(carWindowFrameVGeom, carMaterial);
+            var carWindowFrameHFL = new THREE.Mesh(carWindowFrameHGeom, carMaterial);
+            var carWindowFrameIFL = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carWindowFrameVFR = new THREE.Mesh(carWindowFrameVGeom, carMaterial);
+            var carWindowFrameHFR = new THREE.Mesh(carWindowFrameHGeom, carMaterial);
+            var carWindowFrameIFR = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carWindowFrameVBL = new THREE.Mesh(carWindowFrameVGeom, carMaterial);
+            var carWindowFrameHBL = new THREE.Mesh(carWindowFrameHGeom, carMaterial);
+            var carWindowFrameIBL = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carWindowFrameVBR = new THREE.Mesh(carWindowFrameVGeom, carMaterial);
+            var carWindowFrameHBR = new THREE.Mesh(carWindowFrameHGeom, carMaterial);
+            var carWindowFrameIBR = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carTrunkS = new THREE.Mesh(carTrunkGeom, carMaterial);
+            var carWindowshieldL = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carWindowshieldR = new THREE.Mesh(carWindowFrameIGeom, carMaterial);
+            var carRoof = new THREE.Mesh(carRoofGeom, carMaterial);
 
             FrontGhostL = new THREE.Mesh();
             FrontGhostL.add(carFrontDoorL);
+            FrontGhostL.add(carWindowFrameVFL);
+            FrontGhostL.add(carWindowFrameHFL);
+            FrontGhostL.add(carWindowFrameIFL);
             carFrontDoorL.position.x = 0.75;
+            carWindowFrameVFL.position.x = 1.45;
+            carWindowFrameVFL.position.y = 0.8;
+            carWindowFrameHFL.position.x = 1.125;
+            carWindowFrameHFL.position.y = 1.10;
+            carWindowFrameIFL.position.x = 0.42;
+            carWindowFrameIFL.position.y = 0.75;
+            carWindowFrameIFL.rotation.z = -45 * Math.PI/180;
 
             FrontGhostR = new THREE.Mesh();
             FrontGhostR.add(carFrontDoorR);
+            FrontGhostR.add(carWindowFrameVFR);
+            FrontGhostR.add(carWindowFrameHFR);
+            FrontGhostR.add(carWindowFrameIFR);
             carFrontDoorR.position.x = 0.75;
+            carWindowFrameVFR.position.x = 1.45;
+            carWindowFrameVFR.position.y = 0.8;
+            carWindowFrameHFR.position.x = 1.125;
+            carWindowFrameHFR.position.y = 1.10;
+            carWindowFrameIFR.position.x = 0.42;
+            carWindowFrameIFR.position.y = 0.75;
+            carWindowFrameIFR.rotation.z = -45 * Math.PI/180;
 
             CofreGhost = new THREE.Mesh();
             CofreGhost.add(carCofreT);
@@ -577,6 +654,37 @@
             carTrunk3.position.x = 0.9167;
             carTrunk3.position.y = -0.34;
 
+            WheelsGhostFL = new THREE.Mesh();
+            WheelsGhostFL.add(carFrontWheelL);
+            WheelsGhostFL.add(carFrontRimL);
+            WheelsGhostFL.rotation.x = 90 * Math.PI/180;
+            WheelsGhostFL.position.x = -2;
+            WheelsGhostFL.position.z = 1.15;
+            WheelsGhostFL.position.y = -0.1;
+
+            WheelsGhostFR = new THREE.Mesh();
+            WheelsGhostFR.add(carFrontWheelR);
+            WheelsGhostFR.add(carFrontRimR);
+            WheelsGhostFR.rotation.x = 90 * Math.PI/180;
+            WheelsGhostFR.position.x = -2;
+            WheelsGhostFR.position.z = -1.15;
+            WheelsGhostFR.position.y = -0.1;
+
+            WheelsGhostBL = new THREE.Mesh();
+            WheelsGhostBL.add(carBackWheelL);
+            WheelsGhostBL.add(carBackRimL);
+            WheelsGhostBL.rotation.x = 90 * Math.PI/180;
+            WheelsGhostBL.position.x = 1.7;
+            WheelsGhostBL.position.z = 1.15;
+            WheelsGhostBL.position.y = -0.1;
+
+            WheelsGhostBR = new THREE.Mesh();
+            WheelsGhostBR.add(carBackWheelR);
+            WheelsGhostBR.add(carBackRimR);
+            WheelsGhostBR.rotation.x = 90 * Math.PI/180;
+            WheelsGhostBR.position.x = 1.7;
+            WheelsGhostBR.position.z = -1.15;
+            WheelsGhostBR.position.y = -0.1;
 
             FrontGhostL.position.x = -1.5;
             FrontGhostL.position.z = 1.095;
@@ -625,6 +733,48 @@
             TrunkGhost.position.x = 1.9333;
             TrunkGhost.position.y = 0.95;
 
+            carWindowFrameVBL.position.x = 0.05;
+            carWindowFrameVBL.position.y = 1.35;
+            carWindowFrameVBL.position.z = 1.0945;
+            carWindowFrameHBL.position.x = 0.375;
+            carWindowFrameHBL.position.y = 1.65;
+            carWindowFrameHBL.position.z = 1.0945;
+            carWindowFrameIBL.position.x = 1.079;
+            carWindowFrameIBL.position.y = 1.3;
+            carWindowFrameIBL.position.z = 1.0945;
+            carWindowFrameIBL.rotation.z = 45 * Math.PI/180;
+
+            carWindowFrameVBR.position.x = 0.05;
+            carWindowFrameVBR.position.y = 1.35;
+            carWindowFrameVBR.position.z = -1.0945;
+            carWindowFrameHBR.position.x = 0.375;
+            carWindowFrameHBR.position.y = 1.65;
+            carWindowFrameHBR.position.z = -1.0945;
+            carWindowFrameIBR.position.x = 1.079;
+            carWindowFrameIBR.position.y = 1.3;
+            carWindowFrameIBR.position.z = -1.0945;
+            carWindowFrameIBR.rotation.z = 45 * Math.PI/180;
+
+            carTrunkS.position.x = 1.9333;
+            carTrunkS.position.y = 0.95;
+
+            carWindowshieldL.position.x = -1.125;
+            carWindowshieldL.position.y = 1.3;
+            carWindowshieldL.position.z = 1.0945;
+            carWindowshieldL.rotation.z = -45 * Math.PI/180;
+
+            carWindowshieldR.position.x = -1.125;
+            carWindowshieldR.position.y = 1.3;
+            carWindowshieldR.position.z = -1.0945;
+            carWindowshieldR.rotation.z = -45 * Math.PI/180;
+
+            carRoof.position.y = 1.65;
+            carRoof.position.x = -0.024;
+
+
+
+
+
 
 
 
@@ -645,6 +795,217 @@
             tsuru.add(carBackkL);
             tsuru.add(carBackkR);
             tsuru.add(TrunkGhost);
+            tsuru.add(WheelsGhostFL);
+            tsuru.add(WheelsGhostFR);
+            tsuru.add(WheelsGhostBL);
+            tsuru.add(WheelsGhostBR);
+            tsuru.add(carWindowFrameVBL);
+            tsuru.add(carWindowFrameHBL);
+            tsuru.add(carWindowFrameIBL);
+            tsuru.add(carWindowFrameVBR);
+            tsuru.add(carWindowFrameHBR);
+            tsuru.add(carWindowFrameIBR);
+            tsuru.add(carTrunkS);
+            tsuru.add(carWindowshieldL);
+            tsuru.add(carWindowshieldR);
+            tsuru.add(carRoof);
+
+            tsuru.position.y = 0.49;
+
+
+            var droneBodyFrontGeom = new THREE.BoxGeometry( 0.45, 0.25, 0.45);
+            var droneBodyBackGeom = new THREE.BoxGeometry( 0.45, 0.25, 0.32);
+            var droneLegGeom = new THREE.BoxGeometry( 0.4, 0.1, 0.15);
+            var droneRotorGeom = new THREE.BoxGeometry( 0.22, 0.01, 0.075);
+            var droneRotorSupportGeom = new THREE.CylinderGeometry( 0.05, 0.05, 0.25, 36);
+
+
+            var droneMaterial = new THREE.MeshStandardMaterial( { color: 0x090909, metalness: 0.2} );
+
+
+            var droneBodyFront = new THREE.Mesh(droneBodyFrontGeom, droneMaterial);
+            var droneBodyBack = new THREE.Mesh(droneBodyBackGeom, droneMaterial);
+            var droneLegFL = new THREE.Mesh(droneLegGeom, droneMaterial);
+            var droneLegFR = new THREE.Mesh(droneLegGeom, droneMaterial);
+            var droneLegBL = new THREE.Mesh(droneLegGeom, droneMaterial);
+            var droneLegBR = new THREE.Mesh(droneLegGeom, droneMaterial);
+
+            var droneHelixFL = new THREE.Mesh(droneRotorSupportGeom, droneMaterial);
+            var droneRotorFL1 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            var droneRotorFL2 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            droneHelixFL.add(droneRotorFL1);
+            droneHelixFL.add(droneRotorFL2);
+            droneRotorFL1.position.y = 0.125;
+            droneRotorFL1.position.x = 0.125;
+            droneRotorFL1.rotation.x = 15*Math.PI/180;
+            droneRotorFL2.position.y = 0.125;
+            droneRotorFL2.position.x = -0.125;
+            droneRotorFL2.rotation.x = -15*Math.PI/180;
+            droneHelixFL.position.x = -0.15;
+            droneLegFL.add(droneHelixFL);
+
+            var droneHelixFR = new THREE.Mesh(droneRotorSupportGeom, droneMaterial);
+            var droneRotorFR1 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            var droneRotorFR2 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            droneHelixFR.add(droneRotorFR1);
+            droneHelixFR.add(droneRotorFR2);
+            droneRotorFR1.position.y = 0.125;
+            droneRotorFR1.position.x = 0.125;
+            droneRotorFR1.rotation.x = 15*Math.PI/180;
+            droneRotorFR2.position.y = 0.125;
+            droneRotorFR2.position.x = -0.125;
+            droneRotorFR2.rotation.x = -15*Math.PI/180;
+            droneHelixFR.position.x = -0.15;
+            droneLegFR.add(droneHelixFR);
+
+            var droneHelixBL = new THREE.Mesh(droneRotorSupportGeom, droneMaterial);
+            var droneRotorBL1 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            var droneRotorBL2 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            droneHelixBL.add(droneRotorBL1);
+            droneHelixBL.add(droneRotorBL2);
+            droneRotorBL1.position.y = 0.125;
+            droneRotorBL1.position.x = 0.125;
+            droneRotorBL1.rotation.x = 15*Math.PI/180;
+            droneRotorBL2.position.y = 0.125;
+            droneRotorBL2.position.x = -0.125;
+            droneRotorBL2.rotation.x = -15*Math.PI/180;
+            droneHelixBL.position.x = 0.15;
+            droneLegBL.add(droneHelixBL);
+
+            var droneHelixBR = new THREE.Mesh(droneRotorSupportGeom, droneMaterial);
+            var droneRotorBR1 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            var droneRotorBR2 = new THREE.Mesh(droneRotorGeom, droneMaterial);
+            droneHelixBR.add(droneRotorBR1);
+            droneHelixBR.add(droneRotorBR2);
+            droneRotorBR1.position.y = 0.125;
+            droneRotorBR1.position.x = 0.125;
+            droneRotorBR1.rotation.x = 15*Math.PI/180;
+            droneRotorBR2.position.y = 0.125;
+            droneRotorBR2.position.x = -0.125;
+            droneRotorBR2.rotation.x = -15*Math.PI/180;
+            droneHelixBR.position.x = 0.15;
+            droneLegBR.add(droneHelixBR);
+
+            droneBodyFront.add(droneLegFL);
+            droneBodyFront.add(droneLegFR);
+            droneLegFL.position.x = -0.32;
+            droneLegFL.position.z = 0.33;
+            droneLegFL.rotation.y = 45 * Math.PI/180;
+            droneLegFR.position.x = -0.32;
+            droneLegFR.position.z = -0.33;
+            droneLegFR.rotation.y = -45 * Math.PI/180;
+            droneBodyFront.position.x = -0.225;
+
+            droneBodyBack.add(droneLegBL);
+            droneBodyBack.add(droneLegBR);
+            droneLegBL.position.x = 0.3;
+            droneLegBL.position.z = 0.23;
+            droneLegBL.rotation.y = -45 * Math.PI/180;
+            droneLegBR.position.x = 0.3;
+            droneLegBR.position.z = -0.23;
+            droneLegBR.rotation.y = 45 * Math.PI/180;
+            droneBodyBack.position.x = 0.225;
+
+            var drone = new THREE.Mesh();
+            drone.add(droneBodyFront);
+            drone.add(droneBodyBack);
+
+            tsuru.add(drone);
+            drone.position.y = 1.825;
+
+
+
+
+            var aulaMagna = new THREE.CylinderGeometry(10, 10, 36, 32);
+            var aulas = new THREE.BoxGeometry(80, 30, 18);
+            var banderas = new THREE.BoxGeometry(60, 18, 60);
+            var banderapiso = new THREE.BoxGeometry(59.5, 18, 59.5);
+            var borreouter = new THREE.CylinderGeometry(30, 30, 12, 32);
+            var borrein = new THREE.CylinderGeometry(20, 20, 18, 32);
+            var daeGeom = new THREE.BoxGeometry(60, 30, 45);
+
+           	var tecMaterial = new THREE.MeshStandardMaterial( { color: 0xFFFFFF, metalness: 0} );
+           	
+           	var magna1 = new THREE.Mesh(aulaMagna, tecMaterial);
+           	var aula1 = new THREE.Mesh(aulas, tecMaterial);
+           	var aulas1l = new THREE.Mesh();
+           	aulas1l.add(magna1);
+           	aulas1l.add(aula1);
+           	magna1.position.x = -40;
+
+           	var magna2 = new THREE.Mesh(aulaMagna, tecMaterial);
+           	var aula2 = new THREE.Mesh(aulas, tecMaterial);
+           	var aulas1r = new THREE.Mesh();
+           	aulas1r.add(magna2);
+           	aulas1r.add(aula2);
+           	magna2.position.x = 40;
+
+           	var magna3 = new THREE.Mesh(aulaMagna, tecMaterial);
+           	var aula3 = new THREE.Mesh(aulas, tecMaterial);
+           	var aulas2l = new THREE.Mesh();
+           	aulas2l.add(magna3);
+           	aulas2l.add(aula3);
+           	magna3.position.x = -40;
+
+           	var magna4 = new THREE.Mesh(aulaMagna, tecMaterial);
+           	var aula4 = new THREE.Mesh(aulas, tecMaterial);
+           	var aulas2r = new THREE.Mesh();
+           	aulas2r.add(magna4);
+           	aulas2r.add(aula4);
+           	magna4.position.x = 40;
+
+           	var bande = new THREE.Mesh(banderas, tecMaterial);
+           	var bandepiso = new THREE.Mesh(banderapiso,grassMaterial);
+           	bande.add(bandepiso);
+           	bandepiso.position.y = 0.1;
+
+           	bande.rotation.y = 45 * Math.PI/180;
+
+           	aulas1l.position.z = -35;
+           	
+           	aulas2r.position.z = 35;
+
+           	aulas1l.position.x = -40;
+           	aulas1r.position.x = 70;
+           	aulas2l.position.x = -70;
+           	aulas2r.position.x = 40;
+
+           	magna1.position.y = 3;
+           	magna2.position.y = 3;
+           	magna3.position.y = 3;
+           	magna4.position.y = 3;
+
+           	var cafe = new THREE.Mesh(borreouter, tecMaterial);
+           	var cafein = new THREE.Mesh(borrein, tecMaterial);
+           	cafe.add(cafein);
+           	cafe.position.x = -150;
+           	cafe.position.z = -30;
+
+           	var dae = new THREE.Mesh(daeGeom, tecMaterial);
+           	dae.position.x = 150;
+           	dae.position.z = 50;
+           	dae.position.y = 15;
+
+
+           	aulas1l.position.y = 15;
+           	aulas1r.position.y = 15;
+           	aulas2l.position.y = 15;
+           	aulas2r.position.y = 15;
+           	cafe.position.y = 6;
+           	bande.position.y = 18;
+
+
+
+           	var itesm = new THREE.Mesh();
+           	itesm.add(aulas1l);
+           	itesm.add(aulas1r);
+           	itesm.add(aulas2l);
+           	itesm.add(aulas2r);
+           	itesm.add(bande);
+           	itesm.add(cafe);
+           	itesm.add(dae);
+
+           	itesm.position.z = 100;
 
 
 
@@ -654,9 +1015,10 @@
 
 
 
-            //scene.add(grass);
+            scene.add(grass);
             scene.add(tsuru);
            	scene.add(feria);
+           	scene.add(itesm);
             renderer.setSize(window.innerWidth, window.innerHeight); 
             document.body.appendChild(renderer.domElement); 
 
@@ -704,6 +1066,12 @@
                     kilahueaRing.position.y += 1;
                 else
                     kilahueaRing.position.y -= 1;
+                if(ascension == 1){
+                	droneHelixFL.rotation.y += 1;
+                	droneHelixFR.rotation.y += 1;
+                	droneHelixBL.rotation.y += 1;
+                	droneHelixBR.rotation.y += 1;
+                }
 
             	camera.position.z = zpos; 
             	camera.position.x = xpos;
